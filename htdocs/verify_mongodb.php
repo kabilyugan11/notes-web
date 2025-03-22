@@ -24,73 +24,38 @@ if (!class_exists('MongoDB\Client')) {
     echo "<pre>composer require mongodb/mongodb</pre>";
     exit;
 } else {
-    echo "<p style='color: green;'>MongoDB\Client class is available.</p>";
+    echo "<p style='color: green;'>MongoDB PHP library is installed correctly.</p>";
 }
 
 // Try to connect to MongoDB
 try {
-    // Include the Database class
-    require_once __DIR__ . '/api/classes/Database.php';
+    $config = include(__DIR__ . '/api/config/db_config.php');
+    echo "<p>Connecting to: mongodb.selfmade.ninja:27017</p>";
     
-    echo "<p>Creating Database connection...</p>";
-    $database = new Database();
-    $client = $database->getConnection();
+    // Create MongoDB client
+    $client = new MongoDB\Client($config['dsn']);
+    
+    // Verify connection by listing databases
+    $databaseNames = [];
+    $cursor = $client->listDatabases();
+    
+    foreach ($cursor as $db) {
+        $databaseNames[] = $db->getName();
+    }
     
     echo "<p style='color: green;'>Successfully connected to MongoDB!</p>";
+    echo "<p>Available databases: " . implode(", ", $databaseNames) . "</p>";
     
-    // Try to list all databases
-    echo "<h2>Available Databases:</h2>";
-    echo "<ul>";
-    $databaseList = $client->listDatabases();
-    foreach ($databaseList as $db) {
-        echo "<li>" . $db->getName() . "</li>";
-    }
-    echo "</ul>";
-    
-    // Try to verify the 'notes_app' database and collections
-    $db = $client->selectDatabase('notes_app');
-    
-    echo "<h2>Collections in notes_app:</h2>";
-    echo "<ul>";
-    $collections = $db->listCollections();
-    foreach ($collections as $collection) {
-        echo "<li>" . $collection->getName() . "</li>";
-    }
-    echo "</ul>";
-    
-    // Create the users collection if it doesn't exist
-    if (!in_array('users', iterator_to_array($db->listCollectionNames()))) {
-        echo "<p>Creating 'users' collection...</p>";
-        $db->createCollection('users');
-        echo "<p style='color: green;'>Successfully created 'users' collection!</p>";
+    // Check if our specific database exists
+    if (in_array($config['dbname'], $databaseNames)) {
+        echo "<p style='color: green;'>Database '{$config['dbname']}' exists.</p>";
     } else {
-        echo "<p style='color: green;'>'users' collection already exists.</p>";
-    }
-    
-    // Create the notes collection if it doesn't exist
-    if (!in_array('notes', iterator_to_array($db->listCollectionNames()))) {
-        echo "<p>Creating 'notes' collection...</p>";
-        $db->createCollection('notes');
-        echo "<p style='color: green;'>Successfully created 'notes' collection!</p>";
-    } else {
-        echo "<p style='color: green;'>'notes' collection already exists.</p>";
+        echo "<p style='color: orange;'>Warning: Database '{$config['dbname']}' not found. It will be created when you first insert data.</p>";
     }
     
 } catch (Exception $e) {
-    echo "<p style='color: red;'>ERROR: " . $e->getMessage() . "</p>";
-    
-    // Show more details about the MongoDB setup
-    echo "<h2>MongoDB Configuration Details:</h2>";
-    echo "<pre>";
-    $config = include(__DIR__ . '/api/config/db_config.php');
-    print_r($config);
-    echo "</pre>";
-    
-    echo "<h2>PHP Environment:</h2>";
-    echo "<pre>";
-    echo "PHP Version: " . phpversion() . "\n";
-    echo "Loaded Extensions:\n";
-    print_r(get_loaded_extensions());
-    echo "</pre>";
+    echo "<p style='color: red;'>ERROR: Failed to connect to MongoDB!</p>";
+    echo "<p>Error message: " . $e->getMessage() . "</p>";
+    echo "<p>Please check your connection string and credentials in api/config/db_config.php</p>";
 }
 ?>

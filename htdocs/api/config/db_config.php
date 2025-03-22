@@ -1,13 +1,10 @@
 <?php
-// Database configuration settings for connecting to MongoDB
-
-$mongoDBHost = 'localhost'; // MongoDB server host
-$mongoDBPort = '27017'; // MongoDB server port
-$mongoDBDatabase = 'notes_app'; // Database name
-
-// Return configuration as an array
 return [
-    'dsn' => "mongodb://$mongoDBHost:$mongoDBPort",
-    'dbname' => $mongoDBDatabase
+    'dsn' => 'mongodb://kabil:hi%40ky%40...@mongodb.selfmade.ninja:27017',
+    'dbname' => 'notes_app', // Adjust if your database name is different
+    'options' => [
+        'retryWrites' => true,
+        'w' => 'majority'
+    ]
 ];
 ?>

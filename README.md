@@ -74,10 +74,11 @@ notes-web-app
 
 ### Installation
 1. Clone the repository to your local machine.
-2. Navigate to the `workspace` directory.
-3. Set up the MongoDB database and import the schemas located in `mongodb/schemas/`.
-4. Configure the database connection in `workspace/api/config/db_config.php`.
-5. Start the Apache server and point it to the `htdocs` directory.
+2. Navigate to the `htdocs` directory then run $``php -S localhost:8000``
+3. Navigate to the `workspace` directory.
+4. Set up the MongoDB database and import the schemas located in `mongodb/schemas/`.
+5. Configure the database connection in `workspace/api/config/db_config.php`.
+6. Start the Apache server and point it to the `htdocs` directory.
 
 ### Running the Application
 - Open your web browser and navigate to `http://localhost/index.html` to access the application.

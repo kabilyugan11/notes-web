@@ -91,7 +91,11 @@
                         window.location.href = 'dashboard.html';
                     }, 2000);
                 } else {
-                    alertContainer.innerHTML = `<div class="alert alert-danger">Login failed: ${data.message}</div>`;
+                    alertContainer.innerHTML = `<div class="alert alert-danger">Login failed: ${data.message}</div>
+                        <div class="text-center mt-2">
+                            <p>Make sure your username/email and password are correct.</p>
+                            <p>Not registered yet? <a href="register.html">Register here</a></p>
+                        </div>`;
                 }
             })
             .catch(error => {
@@ -104,10 +108,11 @@
                 
                 // Add diagnostic buttons
                 const buttonContainer = document.createElement('div');
-                buttonContainer.className = 'mt-3';
+                buttonContainer.className = 'mt-3 text-center';
                 buttonContainer.innerHTML = `
+                    <p>Troubleshooting options:</p>
                     <a href="mock_login.php" class="btn btn-primary mr-2">Try Mock Login</a>
-                    <a href="verify_mongodb.php" class="btn btn-info mr-2">Verify MongoDB</a>
+                    <a href="mock_register.php" class="btn btn-success mr-2">Register Test User</a>
                     <button class="btn btn-warning" onclick="window.location.reload()">Try Again</button>
                 `;
                 alertContainer.appendChild(buttonContainer);

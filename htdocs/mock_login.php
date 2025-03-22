@@ -52,36 +52,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate the data
     if ((isset($data['username']) || isset($data['email'])) && isset($data['password'])) {
         try {
-            // Create database connection
-            $database = new Database();
-            $db = $database->getConnection();
+            // Mock database access
+            $dataDir = __DIR__ . '/mock/data';
+            $usersFile = $dataDir . '/users.json';
             
-            // Get database handle
-            $dbHandle = $db->selectDatabase('notes_app');
-            $usersCollection = $dbHandle->users;
-            
-            // Check if user exists by username or email
-            $username = isset($data['username']) ? $data['username'] : '';
-            $password = $data['password'];
-            
-            // Search conditions
-            $searchConditions = [];
-            // If username looks like an email, search for both username and email
-            if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
-                $searchConditions = [
-                    '$or' => [
-                        ['username' => $username],
-                        ['email' => $username]
-                    ]
-                ];
-                file_put_contents($logFile, "Searching by email: $username\n", FILE_APPEND);
-            } else {
-                $searchConditions = ['username' => $username];
-                file_put_contents($logFile, "Searching by username: $username\n", FILE_APPEND);
+            // Create the data directory if it doesn't exist
+            if (!file_exists($dataDir)) {
+                mkdir($dataDir, 0755, true);
             }
             
-            // Find the user
-            $user = $usersCollection->findOne($searchConditions);
+            // Create the users file if it doesn't exist
+            if (!file_exists($usersFile)) {
+                file_put_contents($usersFile, json_encode([]));
+            }
+            
+            $users = json_decode(file_get_contents($usersFile), true) ?: [];
+            
+            // Get user input
+            // Handle both username and email in the 'username' field for flexibility
+            $username = isset($data['username']) ? trim($data['username']) : '';
+            $password = isset($data['password']) ? $data['password'] : '';
+            
+            // Search for the user by username or email
+            $user = null;
+            $searchConditions = [];
+            
+            if (strpos($username, '@') !== false) {
+                // Looks like an email address
+                file_put_contents($logFile, "Searching by email: $username\n", FILE_APPEND);
+                foreach ($users as $u) {
+                    if (isset($u['email']) && $u['email'] === $username) {
+                        $user = $u;
+                        break;
+                    }
+                }
+            } else {
+                file_put_contents($logFile, "Searching by username: $username\n", FILE_APPEND);
+                foreach ($users as $u) {
+                    if (isset($u['username']) && $u['username'] === $username) {
+                        $user = $u;
+                        break;
+                    }
+                }
+                
+                // If not found by username, try email as fallback
+                if (!$user) {
+                    file_put_contents($logFile, "Username not found, trying as email...\n", FILE_APPEND);
+                    foreach ($users as $u) {
+                        if (isset($u['email']) && $u['email'] === $username) {
+                            $user = $u;
+                            break;
+                        }
+                    }
+                }
+            }
             
             if (!$user) {
                 file_put_contents($logFile, "User not found: $username\n", FILE_APPEND);
@@ -91,9 +115,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
             
+            // Debug password verification
+            $passwordMatches = password_verify($password, $user['password']);
+            file_put_contents($logFile, "Password verification: " . ($passwordMatches ? "PASSED" : "FAILED") . "\n", FILE_APPEND);
+            
             // Verify password
-            if (!password_verify($password, $user['password'])) {
-                file_put_contents($logFile, "Password verification failed for user: $username\n", FILE_APPEND);
+            if (!$passwordMatches) {
+                file_put_contents($logFile, "Password verification failed for user: " . $user['username'] . "\n", FILE_APPEND);
                 outputJSON([
                     "success" => false,
                     "message" => "Login failed: Invalid username or password."
@@ -101,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Login successful
-            file_put_contents($logFile, "Login successful for user: $username\n", FILE_APPEND);
+            file_put_contents($logFile, "Login successful for user: " . $user['username'] . "\n", FILE_APPEND);
             
             // Remove password from user data before sending to client
             unset($user['password']);
@@ -168,7 +196,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="mt-3">
             <a href="login.html" class="btn btn-warning">Back to Login</a>
+            <a href="mock_register.php" class="btn btn-info ml-2">Register a Test User</a>
+            <button id="viewUsers" class="btn btn-secondary ml-2">View Registered Users</button>
+        </div>
+        
+        <div id="usersList" class="mt-4 d-none">
+            <h3>Registered Users</h3>
+            <div class="alert alert-warning">This is shown only for testing purposes!</div>
+            <pre id="usersData" class="bg-light p-3"></pre>
         </div>
     </div>
+    
+    <script>
+        document.getElementById('viewUsers').addEventListener('click', function() {
+            fetch('mock/list_users.php')
+                .then(response => response.json())
+                .then(data => {
+                    const usersList = document.getElementById('usersList');
+                    const usersData = document.getElementById('usersData');
+                    usersList.classList.remove('d-none');
+                    
+                    // Format and display users
+                    let formattedUsers = [];
+                    data.forEach(user => {
+                        formattedUsers.push({
+                            username: user.username,
+                            email: user.email,
+                            id: user.id
+                        });
+                    });
+                    
+                    usersData.textContent = JSON.stringify(formattedUsers, null, 2);
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    alert('Error fetching users: ' + error.message);
+                });
+        });
+    </script>
 </body>
-</html> 
+</html>

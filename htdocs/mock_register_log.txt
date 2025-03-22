@@ -99,3 +99,16 @@ Processed data: Array
 Validation passed, processing registration
 Creating user: keerthick, keerthick@gmail.com
 User created successfully
+Registration attempt: 2025-03-22 18:19:58
+Content-Type: application/json
+Raw JSON input: {"username":"leo","email":"leo@gmail.com","password":"leodass"}
+Processed data: Array
+(
+    [username] => leo
+    [email] => leo@gmail.com
+    [password] => leodass
+)
+
+Validation passed, processing registration
+Creating user: leo, leo@gmail.com
+User created successfully

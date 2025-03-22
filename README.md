@@ -72,16 +72,26 @@ notes-web-app
 - MongoDB installed and running
 - Apache server for hosting the application
 
-### Installation
-1. Clone the repository to your local machine.
-2. Navigate to the `htdocs` directory then run $``php -S localhost:8000``
-3. Navigate to the `workspace` directory.
-4. Set up the MongoDB database and import the schemas located in `mongodb/schemas/`.
-5. Configure the database connection in `workspace/api/config/db_config.php`.
-6. Start the Apache server and point it to the `htdocs` directory.
+### Local Machine Deployment
+1.  Install MongoDB Community Edition
+```
+sudo apt update 
+sudo apt-get install gnupg curl
 
-### Running the Application
-- Open your web browser and navigate to `http://localhost/index.html` to access the application.
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
+   --dearmor
 
-## Live Deployment
-The application is deployed on a live server. You can access it at the following URL: [Your Live Site URL]
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+
+sudo apt-get update
+
+sudo apt-get install -y mongodb-org
+
+```
+2. Clone the repository to your local machine.
+3. Navigate to the `htdocs` directory and then run command in terminal
+```
+php -S localhost:8000 
+```
+4. Visit URL - http://localhost:8000

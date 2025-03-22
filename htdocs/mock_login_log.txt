@@ -196,3 +196,27 @@ Processed data: Array
 
 Searching by username: keerthick
 Login successful for user: keerthick
+Login attempt: 2025-03-22 18:20:02
+Content-Type: application/json
+Raw JSON input: {"username":"leo","password":"leodass"}
+Processed data: Array
+(
+    [username] => leo
+    [password] => leodass
+)
+
+Searching by username: leo
+Username not found, trying as email...
+User not found: leo
+Login attempt: 2025-03-22 18:20:05
+Content-Type: application/json
+Raw JSON input: {"username":"leo","password":"leodass"}
+Processed data: Array
+(
+    [username] => leo
+    [password] => leodass
+)
+
+Searching by username: leo
+Username not found, trying as email...
+User not found: leo

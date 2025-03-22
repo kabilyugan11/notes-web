@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Notes Web App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container fade-in">
+        <h2 class="text-center mt-5">Login</h2>
+        <div id="alert-container"></div>
+        <form id="loginForm" class="mt-4 fade-in-up">
+            <div class="form-group">
+                <label for="username">Email or Username</label>
+                <input type="text" class="form-control hover-glow" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control hover-glow" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block hover-shadow">Login</button>
+            <div class="text-center mt-3">
+                <p>Don't have an account? <a href="register.html" class="hover-grow">Register here</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Add status indicator
+        const alertContainer = document.getElementById('alert-container');
+        
+        // Add debugging info
+        console.log('Login page loaded');
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading status
+            alertContainer.innerHTML = '<div class="alert alert-info">Logging in, please wait... <div class="spinner-border spinner-border-sm" role="status"><span class="sr-only">Loading...</span></div></div>';
+            
+            // Collect form data
+            const formData = new FormData(this);
+            
+            // Convert FormData to JSON object
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+            
+            console.log('Sending login data:', Object.assign({}, jsonData, {password: '******'}));
+            
+            // Use the mock implementation instead of direct API
+            fetch('mock_login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                
+                // Log the raw response text for debugging
+                return response.text().then(text => {
+                    console.log('Raw response:', text);
+                    
+                    // Try to parse as JSON
+                    try {
+                        return text ? JSON.parse(text) : { success: false, message: "Empty response from server" };
+                    } catch (err) {
+                        console.error('Error parsing JSON:', err);
+                        throw new Error(`Invalid JSON response: ${text}`);
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Server response:', data);
+                if (data.success) {
+                    alertContainer.innerHTML = '<div class="alert alert-success">Login successful! Redirecting to dashboard...</div>';
+                    
+                    // Store user data in session storage
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    alertContainer.innerHTML = `<div class="alert alert-danger">Login failed: ${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                alertContainer.innerHTML = `<div class="alert alert-danger">
+                    <p>An error occurred during login:</p>
+                    <p>${error.message || 'Unknown error'}</p>
+                    <p>Please check the console for more details.</p>
+                </div>`;
+                
+                // Add diagnostic buttons
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'mt-3';
+                buttonContainer.innerHTML = `
+                    <a href="mock_login.php" class="btn btn-primary mr-2">Try Mock Login</a>
+                    <a href="verify_mongodb.php" class="btn btn-info mr-2">Verify MongoDB</a>
+                    <button class="btn btn-warning" onclick="window.location.reload()">Try Again</button>
+                `;
+                alertContainer.appendChild(buttonContainer);
+            });
+        });
+    </script>
+</body>
+</html>
